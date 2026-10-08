@@ -1,29 +1,29 @@
-
-"name": "checklist-medicao-obra",
-"version": "1.0.0",
-"description": "Sistema de Checklist de Auditoria Interna para Medição de Obra",
-"main": "index.html",
-"scripts": {
-"start": "npx serve .",
-"build": "echo "Projeto estático - sem etapa de build necessária."",
-"lint": "echo "Nenhum linter configurado.""
-},
-"keywords": [
-"auditoria",
-"checklist",
-"obra",
-"medicao",
-"html",
-"javascript"
-],
-"author": "",
-"license": "MIT",
-"dependencies": {
-"docx": "^8.5.0",
-"jspdf": "^2.5.1",
-"jspdf-autotable": "^3.8.2"
-},
-"devDependencies": {
-"serve": "^14.2.0"
-}
+{
+  "name": "checklist-medicao-obra",
+  "version": "1.0.0",
+  "description": "Sistema de Checklist de Auditoria Interna para Medição de Obra",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve ./www",
+    "build": "echo \"Projeto estático - sem etapa de build necessária.\"",
+    "lint": "echo \"Nenhum linter configurado.\""
+  },
+  "keywords": [
+    "auditoria",
+    "checklist",
+    "obra",
+    "medicao",
+    "html",
+    "javascript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "docx": "^8.5.0",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
 }

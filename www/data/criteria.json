@@ -1,0 +1,74 @@
+[
+  [
+    "val",
+    "Cadastro e contrato no ERP (Mega) e vigência válida",
+    1,
+    "Contrato vencido ou não cadastrado no Mega.",
+    "Parametrizar o ERP para enviar alertas automáticos (90, 60 e 30 dias antes do vencimento).",
+    "FIN"
+  ],
+  [
+    "adt",
+    "Adendos formalizados e lançados no ERP",
+    2,
+    "Alteração de valor, escopo ou prazo sem adendo formalizado e registrado.",
+    "Formalizar todo adendo assinado e registrá-lo no ERP antes do Boletim de Medição.",
+    "CON"
+  ],
+  [
+    "ctr",
+    "Valor contratual utilizado no Boletim de Medição",
+    2,
+    "Valor Contratual não está sendo utilizado para o boletim de medição.",
+    "Estabelecer controle processual para que qualquer alteração de valor seja imediatamente comunicada ao medidor.",
+    "ENG"
+  ],
+  [
+    "med",
+    "Planilhas de controle gerencial da medição coerentes",
+    2,
+    "Planilhas de controle gerencial da medição incoerentes.",
+    "Lançar sempre o valor presente em contrato, não o enviado pelo fornecedor.",
+    "ENG"
+  ],
+  [
+    "ass",
+    "Contrato e Boletim de Medição assinados",
+    1,
+    "Contrato ou Boletim de Medição sem assinatura.",
+    "Exigir contrato formalizado e Boletim de Medição assinado antes da liberação do pagamento.",
+    "FIN"
+  ],
+  [
+    "bol",
+    "Boletim sem divergência monetária ao contrato",
+    1,
+    "Boletim de Medição em divergência monetária ao contrato.",
+    "Possuir sempre o adendo com a atualização dos valores a pagar disponível.",
+    "ENG"
+  ],
+  [
+    "qdc",
+    "Quadro de Concorrência (3 empresas e justificativas)",
+    1,
+    "Quadro de Concorrência ausente, incompleto ou sem justificativa de exceção.",
+    "Emitir justificativa de exceção aprovada em nível apropriado.",
+    "PRO"
+  ],
+  [
+    "fis",
+    "Análise fiscal (saúde financeira)",
+    0,
+    "Análise fiscal ausente ou desatualizada.",
+    "Disponibilizar e manter atualizada a análise fiscal do fornecedor no Mega.",
+    "SUP"
+  ],
+  [
+    "trb",
+    "Documentação trabalhista (SSELCOM)",
+    0,
+    "Documentação trabalhista obrigatória incompleta ou vencida.",
+    "Bloquear a liberação da empresa para atuar na obra enquanto houver documentação incompleta.",
+    "RH"
+  ]
+]

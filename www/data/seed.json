@@ -1,0 +1,76 @@
+{
+  "m": {
+    "ai": "AI-017/2026",
+    "tema": "MEDIÇÃO DE OBRA",
+    "obra": "OBRA 556 – NORTH TOWER",
+    "mes": "Setembro/2026",
+    "sec4": "",
+    "sec5": "",
+    "sec6": "",
+    "lim": "",
+    "imgs": []
+  },
+  "c": [
+    {
+      "f": "C.L.R. ENTULHOS LTDA",
+      "ct": "666",
+      "t": 58515,
+      "v": 500,
+      "s": ["I", "A", "N", "N", "I", "I", "I", "I", "I"],
+      "o": {},
+      "ac": {},
+      "imgs": []
+    },
+    {
+      "f": "DAHER ENG. CONSULTIVA E TEC. LTDA",
+      "ct": "722",
+      "t": 36734.5,
+      "v": 803,
+      "s": ["I", "A", "N", "N", "I", "I", "I", "N", ""],
+      "o": {},
+      "ac": {},
+      "imgs": []
+    },
+    {
+      "f": "TERRA BRASIL COM. MAT. DE CONST. LTDA",
+      "ct": "733",
+      "t": 55480,
+      "v": 475,
+      "s": ["I", "A", "I", "I", "I", "I", "I", "I", "I"],
+      "o": {},
+      "ac": {},
+      "imgs": []
+    },
+    {
+      "f": "NF ENGENHARIA SOLAR E INSTALACOES ELETRICAS LTDA",
+      "ct": "734",
+      "t": 170250,
+      "v": 1500,
+      "s": ["I", "A", "I", "I", "I", "I", "I", "N"],
+      "o": {},
+      "ac": {},
+      "imgs": []
+    },
+    {
+      "f": "SSELCOM INFORMATICA EIRELI",
+      "ct": "735",
+      "t": 57249.99,
+      "v": 1050,
+      "s": ["I", "A", "I", "I", "I", "I", "I", "A"],
+      "o": {},
+      "ac": {},
+      "imgs": []
+    },
+    {
+      "f": "VITI AMBIENTAL LTDA",
+      "ct": "736",
+      "t": 17430,
+      "v": 140,
+      "s": ["I", "A", "I", "I", "I", "I", "I", "A"],
+      "o": {},
+      "ac": {},
+      "imgs": []
+    }
+  ],
+  "p": {}
+}
