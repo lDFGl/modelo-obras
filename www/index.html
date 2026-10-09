@@ -55,7 +55,7 @@
     .criterion-head strong{font-size:14px}
     .criterion-head span{font-size:11px;color:var(--muted)}
     .status-buttons{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-    .status-btn{min-width:52px;border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 8px;font-weight:700}
+    .status-btn{min-width:52px;border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 8px;font-weight:700;font-size:12px}
     .status-btn.im{color:var(--green)}
     .status-btn.na{color:var(--na)}
     .status-btn.pi{color:var(--amber)}
@@ -71,7 +71,7 @@
     .photos{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
     .photo{position:relative;width:120px;height:90px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#eef2f7}
     .photo img{width:100%;height:100%;object-fit:cover;display:block}
-    .photo button{position:absolute;top:4px;right:4px;border:0;background:rgba(0,0,0,.7);color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer}
+    .photo button{position:absolute;top:4px;right:4px;border:0;background:rgba(0,0,0,.7);color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:14px}
     .empty-state{padding:24px;border:1px dashed var(--line);border-radius:12px;background:#fff;text-align:center}
     .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
     .metric{padding:14px;border:1px solid var(--line);border-radius:10px;background:#fff}
@@ -86,7 +86,7 @@
     .section-gallery .gallery-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
     .section-gallery .gallery-item{position:relative;width:130px;height:95px;overflow:hidden;border-radius:8px;border:1px solid var(--line)}
     .section-gallery .gallery-item img{width:100%;height:100%;object-fit:cover;display:block}
-    .section-gallery .gallery-item button{position:absolute;top:6px;right:6px;border:0;border-radius:50%;background:rgba(0,0,0,.75);color:#fff;cursor:pointer;width:22px;height:22px}
+    .section-gallery .gallery-item button{position:absolute;top:6px;right:6px;border:0;border-radius:50%;background:rgba(0,0,0,.75);color:#fff;cursor:pointer;width:22px;height:22px;font-size:14px}
     .row{margin-top:12px}
   </style>
 </head>
@@ -156,6 +156,14 @@
     const money = n => 'R$ ' + Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const percent = n => (Number(n || 0) * 100).toFixed(2).replace('.', ',') + '%';
 
+    function getStatusClass(label){
+      if(label === 'I') return 'im';
+      if(label === 'A') return 'na';
+      if(label === 'P') return 'pi';
+      if(label === 'N') return 'ni';
+      return 'om';
+    }
+
     function statusForContract(contract){
       let scored = 0, total = 0;
       CR.forEach((item, idx) => {
@@ -189,7 +197,7 @@
 
     function render(){
       const summaryData = summary();
-      $('#app').innerHTML = `
+      document.getElementById('app').innerHTML = `
         <header>
           <div class="title-wrap">
             <h1>Auditoria Interna · Checklist de Medição</h1>
@@ -197,19 +205,13 @@
           </div>
           <div class="header-actions">
             <button class="btn" data-action="export">Exportar dados</button>
-            <label class="btn" style="display:inline-block;cursor:pointer;">Importar<input type="file" accept=".json" data-action="import" hidden /></label>
+            <label class="btn" style="display:inline-block;cursor:pointer;">Importar<input type="file" accept=".json" data-action="import" hidden></label>
             <button class="btn primary" data-action="doc">Gerar Word</button>
             <button class="btn primary" data-action="pdf">Gerar PDF</button>
           </div>
         </header>
         <nav>
-          ${['chk','qg','pl','cf'].map(tabName => `
-            <button class="tab ${activeTab === tabName ? 'active' : ''}" data-action="tab" data-value="${tabName}">${
-              tabName === 'chk' ? 'Checklist por contrato' :
-              tabName === 'qg' ? 'Quadro geral' :
-              tabName === 'pl' ? 'Planos de ação' : 'Dados do relatório'
-            }</button>
-          `).join('')}
+          ${['chk','qg','pl','cf'].map(t => `<button class="tab ${activeTab === t ? 'active' : ''}" data-action="tab" data-value="${t}">${t==='chk'?'Checklist por contrato':t==='qg'?'Quadro geral':t==='pl'?'Planos de ação':'Dados do relatório'}</button>`).join('')}
         </nav>
         <main>
           ${activeTab === 'chk' ? renderChecklist(summaryData) : activeTab === 'qg' ? renderQuadro(summaryData) : activeTab === 'pl' ? renderPlanos() : renderRelatorio()}
@@ -220,13 +222,7 @@
     function renderChecklist(summaryData){
       const contracts = state.contracts;
       if(!contracts.length){
-        return `
-          <div class="empty-state">
-            <h3>Nenhum contrato cadastrado</h3>
-            <p>Crie o primeiro contrato para iniciar a auditoria.</p>
-            <button class="btn primary" data-action="add-contract">+ Novo contrato</button>
-          </div>
-        `;
+        return `<div class="empty-state"><h3>Nenhum contrato cadastrado</h3><p>Crie o primeiro contrato para iniciar a auditoria.</p><button class="btn primary" data-action="add-contract">+ Novo contrato</button></div>`;
       }
       const contract = contracts[currentContract] || contracts[0];
       const result = statusForContract(contract);
@@ -234,90 +230,57 @@
       return `
         <div class="grid">
           <div class="card contract-list">
-            ${contracts.map((c, idx) => `
-              <div class="contract-item ${idx === currentContract ? 'active' : ''}" data-action="select-contract" data-index="${idx}">
-                <div class="contract-name">
-                  <b>8.${idx + 1}</b>
-                  <span>${esc(c.f || 'Novo fornecedor')}</span>
-                </div>
-                <span class="status-tag ${('im na pi ni om').split(' ').includes(LB[result.label].toLowerCase().replace(/\s+/g,'').replace('/','')) ? LB[result.label].toLowerCase().replace(/\s+/g,'').replace('/','') : 'im'}">${LB[result.label]}</span>
-              </div>
-            `).join('')}
-            <div style="margin-top:10px">
-              <button class="btn" data-action="add-contract" style="width:100%">+ Novo contrato</button>
-            </div>
+            ${contracts.map((c, idx) => {
+              const res = statusForContract(c);
+              return `<div class="contract-item ${idx === currentContract ? 'active' : ''}" data-action="select-contract" data-index="${idx}"><div class="contract-name"><b>8.${idx + 1}</b><span>${esc(c.f || 'Novo')}</span></div><span class="status-tag ${getStatusClass(res.label)}">${LB[res.label]}</span></div>`;
+            }).join('')}
+            <div style="margin-top:10px"><button class="btn" data-action="add-contract" style="width:100%">+ Novo contrato</button></div>
           </div>
           <div class="card">
             <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
               <div><b>8.${currentContract + 1}</b> · Contrato</div>
               <div style="text-align:right">
                 <div style="font-size:2rem;font-weight:700">${result.pct == null ? '—' : percent(result.pct)}</div>
-                <span class="status-tag ${LB[result.label].toLowerCase().replace(/\//g,'').replace(/\s+/g,'')}">${LB[result.label]} · ${result.label === 'I' ? 'Implementado' : result.label === 'A' ? 'N/A' : result.label === 'P' ? 'Parcialmente Implementado' : result.label === 'N' ? 'Não Implementado' : 'Oportunidade de Melhoria'}</span>
+                <span class="status-tag ${getStatusClass(result.label)}">${LB[result.label]} · ${result.label === 'I' ? 'Implementado' : result.label === 'A' ? 'N/A' : result.label === 'P' ? 'Parcialmente Implementado' : 'Não Implementado'}</span>
               </div>
             </div>
             <div class="meta" style="margin-top:12px">
-              <div>
-                <label class="field">Fornecedor</label>
-                <input type="text" data-field="f" value="${esc(contract.f)}" />
-              </div>
-              <div>
-                <label class="field">Nº do contrato</label>
-                <input type="text" data-field="ct" value="${esc(contract.ct)}" />
-              </div>
-              <div>
-                <label class="field">Total do contrato (R$)</label>
-                <input type="number" step="0.01" data-field="t" value="${Number(contract.t || 0)}" />
-              </div>
-              <div>
-                <label class="field">Valor medido (R$)</label>
-                <input type="number" step="0.01" data-field="v" value="${Number(contract.v || 0)}" />
-              </div>
+              <div><label class="field">Fornecedor</label><input type="text" data-field="f" value="${esc(contract.f)}" /></div>
+              <div><label class="field">Nº do contrato</label><input type="text" data-field="ct" value="${esc(contract.ct)}" /></div>
+              <div><label class="field">Total do contrato (R$)</label><input type="number" step="0.01" data-field="t" value="${Number(contract.t || 0)}" /></div>
+              <div><label class="field">Valor medido (R$)</label><input type="number" step="0.01" data-field="v" value="${Number(contract.v || 0)}" /></div>
             </div>
-
             <div class="row">
               <b>Imagens / evidências fotográficas</b>
-              <div class="upload-box">
-                <input type="file" accept="image/*" multiple data-upload="contract" data-index="${currentContract}" />
-              </div>
+              <div class="upload-box"><input type="file" accept="image/*" multiple data-upload="contract" data-index="${currentContract}" /></div>
               <div class="photos">
-                ${(contract.imgs || []).map((img, idx) => `
-                  <div class="photo">
-                    <img src="${img.data}" alt="Evidência ${idx + 1}" />
-                    <button type="button" data-remove-image="contract:${currentContract}:${idx}">×</button>
-                  </div>
-                `).join('')}
+                ${(contract.imgs || []).map((img, idx) => `<div class="photo"><img src="${img.data}" alt="Evidência" /><button type="button" data-remove-image="contract:${currentContract}:${idx}">×</button></div>`).join('')}
               </div>
             </div>
-
             <div class="criteria">
               ${CR.map((item, idx) => {
-                  const status = contract.s[idx] || 'A';
-                  const weightText = item[2] ? `peso ${item[2]}` : '⚠ alerta — não influencia a nota';
-                  return `
-                    <div class="criterion ${item[2] ? '' : 'alert'}">
-                      <div class="criterion-head">
-                        <strong>${esc(item[1])}</strong>
-                        <span>${weightText}</span>
-                      </div>
-                      <div class="status-buttons">
-                        ${STATUS_ORDER.map(code => `
-                          <button type="button" class="status-btn ${code.toLowerCase()} ${status === code ? 'active' : ''}" data-action="set-status" data-index="${idx}" data-value="${code}">${LB[code]}</button>
-                        `).join('')}
-                      </div>
-                      <div style="display:grid;gap:8px">
-                        <input type="text" placeholder="Evidência / observação" data-field="o" data-key="${item[0]}" value="${esc((contract.o || {})[item[0]] || '')}" />
-                        <input type="text" placeholder="Ação / tratamento" data-field="ac" data-key="${item[0]}" value="${esc((contract.ac || {})[item[0]] || '')}" />
-                      </div>
+                const status = contract.s[idx] || 'A';
+                return `
+                  <div class="criterion">
+                    <div class="criterion-head">
+                      <strong>${esc(item[1])}</strong>
+                      <span>${item[2] ? 'peso ' + item[2] : '⚠ alerta'}</span>
                     </div>
-                  `;
+                    <div class="status-buttons">
+                      ${STATUS_ORDER.map(c => `<button type="button" class="status-btn ${c.toLowerCase()} ${status === c ? 'active' : ''}" data-action="set-status" data-index="${idx}" data-value="${c}">${LB[c]}</button>`).join('')}
+                    </div>
+                    <div style="display:grid;gap:8px">
+                      <input type="text" placeholder="Evidência / observação" data-field="o" data-key="${item[0]}" value="${esc((contract.o || {})[item[0]] || '')}" />
+                      <input type="text" placeholder="Ação / tratamento" data-field="ac" data-key="${item[0]}" value="${esc((contract.ac || {})[item[0]] || '')}" />
+                    </div>
+                  </div>
+                `;
               }).join('')}
             </div>
-
             <div class="row">
               <b>Recomendações geradas</b>
               ${recs.length ? `<ol>${recs.map(item => `<li>${esc(item[4])}</li>`).join('')}</ol>` : '<p style="color:var(--muted)">Processo sem pendências.</p>'}
             </div>
-
             <div class="row">
               <button class="btn" data-action="delete-contract">${confirmDelete ? 'Confirmar exclusão?' : 'Remover este contrato'}</button>
             </div>
@@ -327,40 +290,35 @@
     }
 
     function renderQuadro(summaryData){
-      const general = summaryData;
       return `
         <div class="metric-grid">
-          <div class="metric"><small>Nível de conformidade</small><strong>${percent(general.index)}</strong></div>
+          <div class="metric"><small>Nível de conformidade</small><strong>${percent(summaryData.index)}</strong></div>
           <div class="metric"><small>Contratos auditados</small><strong>${state.contracts.length}</strong></div>
           <div class="metric"><small>Valor total medido</small><strong>${money(state.contracts.reduce((sum, c) => sum + Number(c.v || 0), 0))}</strong></div>
         </div>
         <div class="grid" style="margin-top:14px">
           <div class="card table-wrap">
             <table>
-              <thead>
-                <tr><th>Item</th><th>Processo auditado</th><th>Nível</th></tr>
-              </thead>
+              <thead><tr><th>Item</th><th>Processo auditado</th><th>Nível</th></tr></thead>
               <tbody>
                 ${state.contracts.map((c, idx) => {
                   const res = statusForContract(c);
-                  return `<tr><td>8.${idx + 1}</td><td>${esc(c.f || '−')}</td><td><span class="status-tag ${LB[res.label].toLowerCase().replace(/\s+/g,'').replace(/\//g,'')}">${LB[res.label]}</span></td></tr>`;
+                  return `<tr><td>8.${idx + 1}</td><td>${esc(c.f || '−')}</td><td><span class="status-tag ${getStatusClass(res.label)}">${LB[res.label]}</span></td></tr>`;
                 }).join('')}
               </tbody>
             </table>
           </div>
           <div class="card table-wrap">
             <table>
-              <thead>
-                <tr><th>Controles internos</th><th>Qtd</th><th>Pontos</th></tr>
-              </thead>
+              <thead><tr><th>Controles internos</th><th>Qtd</th><th>Pontos</th></tr></thead>
               <tbody>
-                <tr><td>Implementados (IM)</td><td>${general.counts.I}</td><td>${general.counts.I}</td></tr>
-                <tr><td>N/A</td><td>${general.counts.A}</td><td>${general.counts.A}</td></tr>
-                <tr><td>Parcialmente implementados (PI)</td><td>${general.counts.P}</td><td>${(general.counts.P * 0.65).toFixed(2)}</td></tr>
-                <tr><td>Não implementados (NI)</td><td>${general.counts.N}</td><td>${general.counts.N}</td></tr>
+                <tr><td>Implementados (IM)</td><td>${summaryData.counts.I}</td><td>${summaryData.counts.I}</td></tr>
+                <tr><td>N/A</td><td>${summaryData.counts.A}</td><td>${summaryData.counts.A}</td></tr>
+                <tr><td>Parcialmente implementados (PI)</td><td>${summaryData.counts.P}</td><td>${(summaryData.counts.P * 0.65).toFixed(2)}</td></tr>
+                <tr><td>Não implementados (NI)</td><td>${summaryData.counts.N}</td><td>${summaryData.counts.N}</td></tr>
               </tbody>
             </table>
-            <p style="color:var(--muted);margin-top:10px">Cálculo: (${general.points.toFixed(2)} ÷ ${state.contracts.length}) × 100 = ${percent(general.index / 100)}.</p>
+            <p style="color:var(--muted);margin-top:10px">Cálculo: (${summaryData.points.toFixed(2)} ÷ ${state.contracts.length}) × 100 = ${percent(summaryData.index / 100)}.</p>
           </div>
         </div>
       `;
@@ -368,9 +326,7 @@
 
     function renderPlanos(){
       const items = CR.map((item, idx) => [item, idx]).filter(([, idx]) => state.contracts.some(c => ['P','N'].includes(c.s[idx] || 'A')));
-      if(!items.length){
-        return '<div class="card">Sem constatações: nenhum item PI/NI.</div>';
-      }
+      if(!items.length) return '<div class="card">Sem constatações: nenhum item PI/NI.</div>';
       return items.map(([item, idx], n) => {
         const plan = state.plans[item[0]] || {};
         return `
@@ -378,25 +334,12 @@
             <div style="font-weight:700;margin-bottom:8px">${n + 1}. ${esc(item[3])}</div>
             <p><b>Recomendação:</b> ${esc(item[4])}</p>
             <div class="meta">
-              <div>
-                <label class="field">Setor</label>
-                <input type="text" data-plan="${item[0]}.s" value="${esc(plan.s || item[5] || '')}" />
-              </div>
-              <div>
-                <label class="field">Prazo</label>
-                <input type="text" data-plan="${item[0]}.z" value="${esc(plan.z || '')}" placeholder="MM/AAAA" />
-              </div>
-              <div>
-                <label class="field">Status</label>
-                <select data-plan="${item[0]}.t">
-                  ${['Pendente','Em andamento','Concluído'].map(status => `<option value="${status}" ${plan.t === status || (!plan.t && status === 'Pendente') ? 'selected' : ''}>${status}</option>`).join('')}
-                </select>
-              </div>
+              <div><label class="field">Setor</label><input type="text" data-plan="${item[0]}.s" value="${esc(plan.s || item[5] || '')}" /></div>
+              <div><label class="field">Prazo</label><input type="text" data-plan="${item[0]}.z" value="${esc(plan.z || '')}" placeholder="MM/AAAA" /></div>
+              <div><label class="field">Status</label><select data-plan="${item[0]}.t">${['Pendente','Em andamento','Concluído'].map(s => `<option ${plan.t === s || (!plan.t && s === 'Pendente') ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
             </div>
-            <div>
-              <label class="field">Plano de ação do setor auditado</label>
-              <textarea rows="3" data-plan="${item[0]}.x">${esc(plan.x || '')}</textarea>
-            </div>
+            <label class="field">Plano de ação do setor auditado</label>
+            <textarea rows="3" data-plan="${item[0]}.x">${esc(plan.x || '')}</textarea>
           </div>
         `;
       }).join('');
@@ -418,30 +361,21 @@
             <div><label class="field">Obra</label><input type="text" data-report="obra" value="${esc(report.obra)}" /></div>
             <div><label class="field">Competência</label><input type="text" data-report="mes" value="${esc(report.mes)}" /></div>
           </div>
-
           ${sections.map(section => {
             const imgs = (report.secImgs?.[section.key] || []);
             return `
               <div class="row">
                 <label class="field">${section.label} (opcional)</label>
                 <textarea rows="6" data-report="${section.key}" placeholder="Descreva o conteúdo do item...">${esc(report[section.key])}</textarea>
-                <div class="upload-box">
-                  <input type="file" accept="image/*" multiple data-upload-section="${section.key}" />
-                </div>
+                <div class="upload-box"><input type="file" accept="image/*" multiple data-upload-section="${section.key}" /></div>
                 <div class="section-gallery">
                   <div class="gallery-list">
-                    ${imgs.map((img, idx) => `
-                      <div class="gallery-item">
-                        <img src="${img.data}" alt="${section.label}" />
-                        <button type="button" data-remove-section-image="${section.key}:${idx}">×</button>
-                      </div>
-                    `).join('') || '<div style="color:var(--muted)">Nenhuma imagem adicionada.</div>'}
+                    ${imgs.map((img, idx) => `<div class="gallery-item"><img src="${img.data}" alt="${section.label}" /><button type="button" data-remove-section-image="${section.key}:${idx}">×</button></div>`).join('') || '<div style="color:var(--muted)">Nenhuma imagem.</div>'}
                   </div>
                 </div>
               </div>
             `;
           }).join('')}
-
           <div class="row">
             <button class="btn" data-action="clear-report">${confirmClear ? 'Confirmar: zerar todos os contratos?' : 'Novo relatório (limpar contratos)'}</button>
           </div>
@@ -504,157 +438,54 @@
       if(!target) return;
       const action = target.dataset.action;
 
-      if(action === 'tab') {
-        activeTab = target.dataset.value;
-        confirmDelete = false;
-        confirmClear = false;
-        render();
-        return;
-      }
-
-      if(action === 'select-contract') {
-        currentContract = Number(target.dataset.index || 0);
-        render();
-        return;
-      }
-
-      if(action === 'add-contract') {
-        addContract();
-        return;
-      }
-
-      if(action === 'set-status') {
-        const idx = Number(target.dataset.index);
-        const value = target.dataset.value;
-        state.contracts[currentContract].s[idx] = value;
-        saveState();
-        render();
-        return;
-      }
-
-      if(action === 'delete-contract') {
-        if(confirmDelete){
-          state.contracts.splice(currentContract, 1);
-          currentContract = Math.max(0, currentContract - 1);
-          confirmDelete = false;
-          saveState();
-          render();
-          return;
-        }
-        confirmDelete = true;
-        render();
-        return;
-      }
-
-      if(action === 'clear-report') {
-        if(confirmClear){
-          state.contracts = [];
-          state.plans = {};
-          state.report = {...DEFAULT_STATE.report};
-          currentContract = 0;
-          confirmClear = false;
-          saveState();
-          render();
-          return;
-        }
-        confirmClear = true;
-        render();
-        return;
-      }
-
-      if(action === 'export'){ 
-        const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'auditoria-' + (state.report.ai || 'relario').replace(/\W+/g,'-') + '.json';
-        a.click();
-        URL.revokeObjectURL(a.href);
-        return;
-      }
-
+      if(action === 'tab') { activeTab = target.dataset.value; confirmDelete = false; confirmClear = false; render(); return; }
+      if(action === 'select-contract') { currentContract = Number(target.dataset.index || 0); render(); return; }
+      if(action === 'add-contract') { addContract(); return; }
+      if(action === 'set-status') { const idx = Number(target.dataset.index); const val = target.dataset.value; state.contracts[currentContract].s[idx] = val; saveState(); render(); return; }
+      if(action === 'delete-contract') { if(confirmDelete){ state.contracts.splice(currentContract, 1); currentContract = Math.max(0, currentContract - 1); confirmDelete = false; saveState(); render(); return; } confirmDelete = true; render(); return; }
+      if(action === 'clear-report') { if(confirmClear){ state.contracts = []; state.plans = {}; state.report = {...DEFAULT_STATE.report}; currentContract = 0; confirmClear = false; saveState(); render(); return; } confirmClear = true; render(); return; }
+      if(action === 'export'){ const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'auditoria-' + (state.report.ai || 'relatorio').replace(/\W+/g,'-') + '.json'; a.click(); URL.revokeObjectURL(a.href); return; }
       if(action === 'doc'){ generateWord(); return; }
       if(action === 'pdf'){ generatePDF(); return; }
-
-      if(action === 'import') {
-        // handled by input change
-      }
     });
 
     document.addEventListener('input', (event) => {
       const input = event.target;
-      if(input.dataset.report){
-        state.report[input.dataset.report] = input.value;
-        saveState();
-        return;
-      }
-      if(input.dataset.field){
-        const contract = state.contracts[currentContract];
-        if(!contract) return;
-        const field = input.dataset.field;
-        const value = input.dataset.field === 't' || input.dataset.field === 'v' ? Number(input.value || 0) : input.value;
-        contract[field] = value;
-        saveState();
-        return;
-      }
-      if(input.dataset.key){
-        const contract = state.contracts[currentContract];
-        if(!contract) return;
-        const key = input.dataset.key;
-        const field = input.dataset.field;
-        contract[field] = contract[field] || {};
-        contract[field][key] = input.value;
-        saveState();
-        return;
-      }
-      if(input.dataset.plan){
-        const [key, prop] = input.dataset.plan.split('.');
-        state.plans[key] = state.plans[key] || {};
-        state.plans[key][prop] = input.value;
-        saveState();
-      }
+      if(input.dataset.report){ state.report[input.dataset.report] = input.value; saveState(); return; }
+      if(input.dataset.field){ const c = state.contracts[currentContract]; if(!c) return; const f = input.dataset.field; const v = ['t','v'].includes(f) ? Number(input.value || 0) : input.value; c[f] = v; saveState(); return; }
+      if(input.dataset.key){ const c = state.contracts[currentContract]; if(!c) return; const k = input.dataset.key; const f = input.dataset.field; c[f] = c[f] || {}; c[f][k] = input.value; saveState(); return; }
+      if(input.dataset.plan){ const [k, p] = input.dataset.plan.split('.'); state.plans[k] = state.plans[k] || {}; state.plans[k][p] = input.value; saveState(); }
     });
 
     document.addEventListener('change', async (event) => {
       const input = event.target;
-
-      if(input.dataset.action === 'import' && input.files && input.files[0]){
-        const file = input.files[0];
-        const text = await file.text();
+      if(input.dataset.action === 'import' && input.files?.[0]){
         try{
+          const text = await input.files[0].text();
           const parsed = JSON.parse(text);
-          state = {
-            report: {...DEFAULT_STATE.report, ...(parsed.report || {}), secImgs: {...DEFAULT_STATE.report.secImgs, ...((parsed.report||{}).secImgs || {})}},
-            contracts: Array.isArray(parsed.contracts) && parsed.contracts.length ? parsed.contracts : [],
-            plans: parsed.plans || {}
-          };
+          state = { report: {...DEFAULT_STATE.report, ...(parsed.report || {}), secImgs: {...DEFAULT_STATE.report.secImgs, ...((parsed.report||{}).secImgs || {})}}, contracts: Array.isArray(parsed.contracts) && parsed.contracts.length ? parsed.contracts : [], plans: parsed.plans || {} };
           currentContract = 0;
           activeTab = 'chk';
           saveState();
           render();
-          toast('Dados importados com sucesso');
-        }catch(e){
-          toast('Arquivo inválido');
-        }
+          toast('Dados importados');
+        }catch(e){ toast('Arquivo inválido'); }
         return;
       }
-
       if(input.dataset.upload === 'contract') {
-        const files = Array.from(input.files || []);
-        const contract = state.contracts[Number(input.dataset.index)];
-        if(!contract) return;
-        const images = await Promise.all(files.map(normalizeImageFile));
-        contract.imgs = [...(contract.imgs || []), ...images];
+        const c = state.contracts[Number(input.dataset.index)];
+        if(!c) return;
+        const images = await Promise.all(Array.from(input.files || []).map(normalizeImageFile));
+        c.imgs = [...(c.imgs || []), ...images];
         saveState();
         render();
         return;
       }
-
       if(input.dataset.uploadSection){
-        const key = input.dataset.uploadSection;
-        const files = Array.from(input.files || []);
-        const images = await Promise.all(files.map(normalizeImageFile));
+        const k = input.dataset.uploadSection;
+        const images = await Promise.all(Array.from(input.files || []).map(normalizeImageFile));
         state.report.secImgs = state.report.secImgs || {};
-        state.report.secImgs[key] = [...(state.report.secImgs[key] || []), ...images];
+        state.report.secImgs[k] = [...(state.report.secImgs[k] || []), ...images];
         saveState();
         render();
       }
@@ -664,15 +495,10 @@
       const removeImage = event.target.closest('[data-remove-image]');
       if(removeImage){
         const [, idxContract, idxImage] = removeImage.dataset.removeImage.split(':');
-        const contract = state.contracts[Number(idxContract)];
-        if(contract && contract.imgs){
-          contract.imgs.splice(Number(idxImage), 1);
-          saveState();
-          render();
-        }
+        const c = state.contracts[Number(idxContract)];
+        if(c?.imgs){ c.imgs.splice(Number(idxImage), 1); saveState(); render(); }
         return;
       }
-
       const removeSectionImage = event.target.closest('[data-remove-section-image]');
       if(removeSectionImage){
         const [section, idx] = removeSectionImage.dataset.removeSectionImage.split(':');
@@ -685,174 +511,65 @@
     });
 
     function generatePDF(){
-      if(!window.jspdf || !window.jspdf.jsPDF){
-        toast('Biblioteca PDF não carregou');
-        return;
-      }
-      if(!state.contracts.length){
-        toast('Nenhum contrato para gerar o relatório');
-        return;
-      }
+      if(!window.jspdf?.jsPDF){ toast('Biblioteca PDF não carregou'); return; }
+      if(!state.contracts.length){ toast('Nenhum contrato para gerar'); return; }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({unit:'pt', format:'a4'});
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 40;
+      const w = doc.internal.pageSize.getWidth();
+      const m = 40;
       let y = 60;
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(20);
-      doc.text('RELATÓRIO DE AUDITORIA INTERNA', pageWidth / 2, y, {align:'center'});
-      y += 30;
-      doc.setFontSize(12);
-      doc.text(state.report.ai || 'AI-017/2026', pageWidth / 2, y, {align:'center'});
-      y += 18;
-      doc.text(state.report.tema || 'MEDIÇÃO DE OBRA', pageWidth / 2, y, {align:'center'});
-      y += 18;
-      doc.text(state.report.obra || 'OBRA', pageWidth / 2, y, {align:'center'});
-      y += 18;
-      doc.text(state.report.mes || 'Competência', pageWidth / 2, y, {align:'center'});
-      doc.addPage();
-      y = 50;
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
-      doc.text('8. CONSTATAÇÕES IM / N/A / PI / NI', margin, y);
-      y += 18;
-
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
+      doc.text('RELATÓRIO DE AUDITORIA INTERNA', w / 2, y, {align:'center'});
+      y += 30; doc.setFontSize(12);
+      doc.text(state.report.ai || 'AI-017/2026', w / 2, y, {align:'center'});
+      y += 18; doc.text(state.report.tema || 'MEDIÇÃO DE OBRA', w / 2, y, {align:'center'});
+      y += 18; doc.text(state.report.obra || 'OBRA', w / 2, y, {align:'center'});
+      y += 18; doc.text(state.report.mes || 'Competência', w / 2, y, {align:'center'});
+      doc.addPage(); y = 50;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
+      doc.text('8. CONSTATAÇÕES IM / N/A / PI / NI', m, y); y += 18;
       state.contracts.forEach((c, idx) => {
-        if(y > 700){
-          doc.addPage();
-          y = 50;
-        }
+        if(y > 700){ doc.addPage(); y = 50; }
         const res = statusForContract(c);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.text(`8.${idx + 1} · ${c.f || 'Fornecedor'} · ${LB[res.label]}`, margin, y);
-        y += 14;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        const text = CR.map((item, i) => `${LB[c.s[i] || 'A']} - ${item[1]}${(c.o || {})[item[0]] ? ' — ' + (c.o || {})[item[0]] : ''}`).join(' | ');
-        const lines = doc.splitTextToSize(text, pageWidth - margin * 2);
-        doc.text(lines, margin, y);
-        y += 14 * lines.length + 10;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+        doc.text(`8.${idx + 1} · ${c.f || 'Fornecedor'} · ${LB[res.label]}`, m, y); y += 14;
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+        const text = CR.map((item, i) => `${LB[c.s[i] || 'A']} - ${item[1]}`).join(' | ');
+        const lines = doc.splitTextToSize(text, w - m * 2);
+        doc.text(lines, m, y); y += 14 * lines.length + 10;
       });
-
       doc.save('relatorio-auditoria.pdf');
       toast('PDF gerado');
     }
 
     function generateWord(){
-      if(!window.docx){
-        toast('Biblioteca Word não carregou');
-        return;
-      }
-      if(!state.contracts.length){
-        toast('Nenhum contrato para gerar o relatório');
-        return;
-      }
-
-      const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, AlignmentType, Header, Footer, WidthType, BorderStyle, ShadingType, PageNumber, ImageRun } = window.docx;
-
-      const blue = '135C6C';
-      const bodyParagraph = (text, options = {}) => new Paragraph({
-        alignment: options.align || AlignmentType.JUSTIFIED,
-        spacing: { after: 120 },
-        children: [new TextRun({
-          text: String(text || ''),
-          font: 'Arial',
-          size: options.size || 24,
-          bold: !!options.bold,
-          color: options.color || '000000'
-        })]
-      });
-
-      const makeHeader = () => new Header({
-        children: [new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [new TableRow({
-            children: [
-              new TableCell({
-                width: { size: 30, type: WidthType.PERCENTAGE },
-                shading: { fill: blue, type: ShadingType.CLEAR },
-                borders: { top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' } },
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'LOGO', bold: true, font: 'Arial', size: 18, color: 'FFFFFF' })] })]
-              }),
-              new TableCell({
-                width: { size: 70, type: WidthType.PERCENTAGE },
-                shading: { fill: blue, type: ShadingType.CLEAR },
-                borders: { top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' } },
-                children: [
-                  bodyParagraph(`${state.report.ai} ${state.report.tema}`, { align: AlignmentType.RIGHT, color: 'FFFFFF', size: 18, bold: true }),
-                  bodyParagraph('AUDITORIA INTERNA', { align: AlignmentType.RIGHT, color: 'FFFFFF', size: 16 }),
-                  bodyParagraph(state.report.mes.toUpperCase(), { align: AlignmentType.RIGHT, color: 'FFFFFF', size: 14 })
-                ]
-              })
-            ]
-          })]
-        })
-      });
-
-      const makeFooter = () => new Footer({
-        children: [new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [new TableRow({
-            children: [
-              new TableCell({
-                columnSpan: 1,
-                shading: { fill: blue, type: ShadingType.CLEAR },
-                borders: { top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' } },
-                children: [
-                  new Paragraph({ alignment: AlignmentType.CENTER, children: [
-                    new TextRun({ children: ['Página ', PageNumber.CURRENT], bold: true, font: 'Arial', size: 18, color: 'FFFFFF' })
-                  ] })
-                ]
-              })
-            ]
-          })]
-        })]
-      });
-
+      if(!window.docx){ toast('Biblioteca Word não carregou'); return; }
+      if(!state.contracts.length){ toast('Nenhum contrato para gerar'); return; }
+      const { Document, Packer, Paragraph, TextRun, AlignmentType } = window.docx;
       const children = [
-        bodyParagraph('RELATÓRIO DE AUDITORIA INTERNA', { align: AlignmentType.CENTER, bold: true, size: 32 }),
-        bodyParagraph(state.report.ai || 'AI', { align: AlignmentType.CENTER, bold: true, size: 28 }),
-        bodyParagraph(state.report.tema || 'MEDIÇÃO DE OBRA', { align: AlignmentType.CENTER, bold: true, size: 26 }),
-        bodyParagraph(state.report.obra || 'OBRA', { align: AlignmentType.CENTER, size: 24 }),
-        bodyParagraph(state.report.mes || 'COMPETÊNCIA', { align: AlignmentType.CENTER, size: 24 }),
-        bodyParagraph('8. CONSTATAÇÕES IM / N/A / PI / NI', { bold: true, size: 26 }),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'RELATÓRIO DE AUDITORIA INTERNA', font: 'Arial', size: 32, bold: true })] }),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: state.report.ai || 'AI', font: 'Arial', size: 28, bold: true })] }),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: state.report.tema || 'MEDIÇÃO DE OBRA', font: 'Arial', size: 26, bold: true })] }),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: state.report.obra || 'OBRA', font: 'Arial', size: 24 })] }),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: state.report.mes || 'COMPETÊNCIA', font: 'Arial', size: 24 })] }),
+        new Paragraph({ alignment: AlignmentType.JUSTIFIED, children: [new TextRun({ text: '8. CONSTATAÇÕES IM / N/A / PI / NI', font: 'Arial', size: 26, bold: true })] })
       ];
-
-      state.contracts.forEach((contract, idx) => {
-        const result = statusForContract(contract);
+      state.contracts.forEach((c, idx) => {
+        const res = statusForContract(c);
         children.push(
-          bodyParagraph(`8.${idx + 1} · ${contract.f || 'Fornecedor'} · ${LB[result.label]}`, { bold: true, size: 24 }),
-          bodyParagraph(`Valor medido: ${money(contract.v)} | Total: ${money(contract.t)}`, { size: 22 }),
-          ...CR.map((item, i) => bodyParagraph(`${LB[contract.s[i] || 'A']} - ${item[1]}${(contract.o || {})[item[0]] ? ' — ' + (contract.o || {})[item[0]] : ''}`, { size: 22 }))
+          new Paragraph({ alignment: AlignmentType.JUSTIFIED, children: [new TextRun({ text: `8.${idx + 1} · ${c.f || 'Fornecedor'} · ${LB[res.label]}`, font: 'Arial', size: 24, bold: true })] }),
+          new Paragraph({ alignment: AlignmentType.JUSTIFIED, children: [new TextRun({ text: `Valor medido: ${money(c.v)} | Total: ${money(c.t)}`, font: 'Arial', size: 22 })] })
         );
+        CR.forEach((item, i) => {
+          children.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, children: [new TextRun({ text: `${LB[c.s[i] || 'A']} - ${item[1]}`, font: 'Arial', size: 22 })] }));
+        });
       });
-
       const doc = new Document({
         creator: 'Auditoria Interna',
         title: 'Relatório de Auditoria',
-        styles:{
-          default:{
-            document:{
-              run:{ font: 'Arial', size: 24 }
-            }
-          }
-        },
-        sections:[{
-          properties: {
-            page: {
-              margin: { top: 1300, right: 1134, bottom: 1300, left: 1134, header: 0, footer: 0 },
-              size: { width: 11906, height: 16838 }
-            }
-          },
-          headers: { default: makeHeader() },
-          footers: { default: makeFooter() },
-          children
-        }]
+        styles: { default: { document: { run: { font: 'Arial', size: 24 } } } },
+        sections: [{ properties: { page: { margin: { top: 1300, right: 1134, bottom: 1300, left: 1134, header: 0, footer: 0 }, size: { width: 11906, height: 16838 } } }, children }]
       });
-
       Packer.toBlob(doc).then(blob => {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
