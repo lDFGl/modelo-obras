@@ -18,6 +18,7 @@
       --red: #d9374d;
       --purple: #6c63ff;
       --na: #008AC9;
+      --om: #44A01C;
     }
     * { box-sizing: border-box; }
     html,body { margin: 0; background: var(--bg); color: var(--text); font-family: Arial, Helvetica, sans-serif; }
@@ -54,7 +55,7 @@
     .status-tag.na { background: var(--na); }
     .status-tag.pi { background: var(--amber); }
     .status-tag.ni { background: var(--red); }
-    .status-tag.om { background: var(--purple); }
+    .status-tag.om { background: var(--om); }
     .field { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
     input[type="text"], input[type="number"], input[type="file"], textarea, select {
       width: 100%; border: 1px solid var(--line); background: #f9fafb; border-radius: 8px; padding: 8px 10px; color: var(--text); font: inherit;
@@ -79,15 +80,15 @@
     }
     .status-btn.active { color: #fff; border-color: transparent; }
     .status-btn.im.active { background: var(--green); }
+    .status-btn.om.active { background: var(--om); }
     .status-btn.na.active { background: var(--na); }
     .status-btn.pi.active { background: var(--amber); }
     .status-btn.ni.active { background: var(--red); }
-    .status-btn.om.active { background: var(--purple); }
     .status-btn.im { color: var(--green); }
+    .status-btn.om { color: var(--om); }
     .status-btn.na { color: var(--na); }
     .status-btn.pi { color: var(--amber); }
     .status-btn.ni { color: var(--red); }
-    .status-btn.om { color: var(--purple); }
     .empty-state {
       border: 1px dashed var(--line); border-radius: 12px; text-align: center; padding: 28px; background: #fff;
     }
@@ -126,8 +127,8 @@
       ['trb','Documentação trabalhista (SSELCOM)',0,'Documentação trabalhista incompleta ou vencida.','Bloquear a liberação da empresa enquanto houver pendência documental.','SUP']
     ];
 
-    const STATUS_LABELS = { I: 'IM', A: 'N/A', P: 'PI', N: 'NI', O: 'OM' };
-    const STATUS_ORDER = ['I', 'A', 'P', 'N', 'O'];
+    const STATUS_LABELS = { I: 'IM', O: 'OM', A: 'N/A', P: 'PI', N: 'NI' };
+    const STATUS_ORDER = ['I', 'O', 'A', 'P', 'N'];
     const DEFAULT_STATE = {
       report: {
         ai: 'AI-017/2026',
@@ -141,7 +142,7 @@
         secImgs: { sec4: [], sec5: [], sec6: [], lim: [] }
       },
       contracts: [
-        { f: 'C.L.R. ENTULHOS LTDA', ct: '666', t: 58515, v: 500, s: ['I','A','N','N','I','I','I','A','A'], o: {}, ac: {}, imgs: [] },
+        { f: 'C.L.R. ENTULHOS LTDA', ct: '666', t: 58515, v: 500, s: ['I','O','A','N','I','I','I','A','A'], o: {}, ac: {}, imgs: [] },
         { f: 'DAHER ENG. CONSULTIVA E TEC. LTDA', ct: '722', t: 36734.5, v: 803, s: ['I','A','N','N','I','N','I','I','N'], o: {}, ac: {}, imgs: [] }
       ],
       plans: {}
@@ -175,10 +176,10 @@
 
     function getStatusClass(label) {
       if (label === 'I') return 'im';
+      if (label === 'O') return 'om';
       if (label === 'A') return 'na';
       if (label === 'P') return 'pi';
-      if (label === 'N') return 'ni';
-      return 'om';
+      return 'ni';
     }
 
     function statusForContract(contract) {
@@ -344,6 +345,7 @@
               <thead><tr><th style="border:1px solid var(--line);padding:8px;text-align:left;">Controles internos</th><th style="border:1px solid var(--line);padding:8px;text-align:left;">Qtd</th><th style="border:1px solid var(--line);padding:8px;text-align:left;">Pontos</th></tr></thead>
               <tbody>
                 <tr><td style="border:1px solid var(--line);padding:8px;">Implementados (IM)</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.I}</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.I}</td></tr>
+                <tr><td style="border:1px solid var(--line);padding:8px;">OM</td><td style="border:1px solid var(--line);padding:8px;">0</td><td style="border:1px solid var(--line);padding:8px;">0</td></tr>
                 <tr><td style="border:1px solid var(--line);padding:8px;">N/A</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.A}</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.A}</td></tr>
                 <tr><td style="border:1px solid var(--line);padding:8px;">Parcialmente implementados (PI)</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.P}</td><td style="border:1px solid var(--line);padding:8px;">${(summary.counts.P * 0.65).toFixed(2)}</td></tr>
                 <tr><td style="border:1px solid var(--line);padding:8px;">Não implementados (NI)</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.N}</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.N}</td></tr>
