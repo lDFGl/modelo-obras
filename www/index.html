@@ -116,10 +116,10 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script>
     const CR = [
-      ['val','Cadastro e contrato no ERP (Mega) e vigência válida',1,'Contrato vencido ou não cadastrado no Mega.','Parametrizar o ERP para enviar alertas automáticos (90, 60 e 30 dias antes do vencimento).','SUP'],
-      ['adt','Adendos formalizados e lançados no ERP',2,'Alteração de valor, escopo ou prazo sem adendo formalizado.','Formalizar todo adendo assinado e registrá-lo no ERP antes do boletim.','SUP'],
-      ['ctr','Valor contratual utilizado no Boletim de Medição',2,'Valor contratual não está sendo utilizado.','Estabelecer controle processual para que qualquer alteração seja registrada no contrato.','SUP'],
-      ['med','Planilhas de controle gerencial da medição coerentes',2,'Planilhas incoerentes ou divergentes.','Lançar sempre o valor presente em contrato, não o valor externo sem conferência.','SUP'],
+      ['val','Cadastro e contrato no ERP (Mega) e vigência válida',1,'Contrato vencido ou não cadastrado no Mega.','Parametrizar o ERP para enviar alertas automáticos (90, 60 e 30 dias antes [...]'],
+      ['adt','Adendos formalizados e lançados no ERP',2,'Alteração de valor, escopo ou prazo sem adendo formalizado.','Formalizar todo adendo assinado e registrá-lo no ERP antes do boletim.',[]],
+      ['ctr','Valor contratual utilizado no Boletim de Medição',2,'Valor contratual não está sendo utilizado.','Estabelecer controle processual para que qualquer alteração seja registrada n[...]',[]],
+      ['med','Planilhas de controle gerencial da medição coerentes',2,'Planilhas incoerentes ou divergentes.','Lançar sempre o valor presente em contrato, não o valor externo sem conferência[...]',[]],
       ['ass','Contrato e Boletim de Medição assinados',1,'Contrato ou boletim sem assinatura.','Exigir contrato formalizado e boletim assinado antes do pagamento.','SUP'],
       ['bol','Boletim sem divergência monetária ao contrato',1,'Boletim em divergência monetária ao contrato.','Possuir sempre o adendo com a atualização dos valores a pagar.','SUP'],
       ['qdc','Quadro de Concorrência (3 empresas e justificativas)',1,'Quadro de concorrência ausente ou incompleto.','Emitir justificativa de exceção aprovada.','SUP'],
@@ -170,7 +170,7 @@
 
     function saveState() { localStorage.setItem('aud1', JSON.stringify(state)); }
 
-    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+    const esc = (v) => String(v ?? '').replace(/[&<>"]|'/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
     const money = (n) => 'R$ ' + Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const percent = (n) => (Number(n || 0) * 100).toFixed(2).replace('.', ',') + '%';
 
@@ -229,7 +229,7 @@
           </div>
         </header>
         <nav>
-          ${['chk','qg','pl','cf'].map(tab => `<button class="tab ${activeTab === tab ? 'active' : ''}" data-action="tab" data-value="${tab}">${tab === 'chk' ? 'Checklist por contrato' : tab === 'qg' ? 'Quadro geral' : tab === 'pl' ? 'Planos de ação' : 'Dados do relatório'}</button>`).join('')}
+          ${['chk','qg','pl','cf'].map(tab => `<button class="tab ${activeTab === tab ? 'active' : ''}" data-action="tab" data-value="${tab}">${tab === 'chk' ? 'Checklist por contrato' : tab === 'qg' ? 'Quadro geral' : tab === 'pl' ? 'Planos de ação' : 'Relatório'}</button>`).join('')}
         </nav>
         <main>
           ${activeTab === 'chk' ? renderChecklist(summary) : activeTab === 'qg' ? renderQuadro(summary) : activeTab === 'pl' ? renderPlanos() : renderReport()}
@@ -263,7 +263,7 @@
               <div><b>8.${currentContract + 1}</b> · Contrato</div>
               <div style="text-align:right;">
                 <div style="font-size:2rem;font-weight:700">${result.pct == null ? '—' : percent(result.pct)}</div>
-                <span class="status-tag ${getStatusClass(result.label)}">${STATUS_LABELS[result.label]} · ${result.label === 'I' ? 'Implementado' : result.label === 'A' ? 'N/A' : result.label === 'P' ? 'Parcialmente Implementado' : 'Não Implementado'}</span>
+                <span class="status-tag ${getStatusClass(result.label)}">${STATUS_LABELS[result.label]} · ${result.label === 'I' ? 'Implementado' : result.label === 'A' ? 'N/A' : result.label === 'P' ? 'Parcial' : 'Não implementado'}</span>
               </div>
             </div>
 
@@ -308,7 +308,7 @@
 
             <div class="criterion">
               <div class="criterion-header"><strong>Recomendações geradas</strong></div>
-              ${recs.length ? '<ol>' + recs.map(item => `<li>${esc(item[4])}</li>`).join('') + '</ol>' : '<p style="color:var(--muted)">Processo sem pendências.</p>'}
+              ${recs.length ? '<ol>' + recs.map(item => `<li>${esc(item[4] || '')}</li>`).join('') + '</ol>' : '<p style="color:var(--muted)">Processo sem pendências.</p>'}
             </div>
 
             <div class="criterion" style="padding-bottom:0;">
@@ -330,11 +330,11 @@
         <div class="grid" style="margin-top:14px;">
           <div class="card">
             <table style="width:100%;border-collapse:collapse;">
-              <thead><tr><th style="border:1px solid var(--line);padding:8px;text-align:left;">Item</th><th style="border:1px solid var(--line);padding:8px;text-align:left;">Processo auditado</th><th style="border:1px solid var(--line);padding:8px;text-align:left;">Nível</th></tr></thead>
+              <thead><tr><th style="border:1px solid var(--line);padding:8px;text-align:left;">Item</th><th style="border:1px solid var(--line);padding:8px;text-align:left;">Processo auditado</th><th style="border:1px solid var(--line);padding:8px;text-align:left;">Status</th></tr></thead>
               <tbody>
                 ${state.contracts.map((c, idx) => {
                   const r = statusForContract(c);
-                  return `<tr><td style="border:1px solid var(--line);padding:8px;">8.${idx + 1}</td><td style="border:1px solid var(--line);padding:8px;">${esc(c.f || 'Fornecedor')}</td><td style="border:1px solid var(--line);padding:8px;"><span class="status-tag ${getStatusClass(r.label)}">${STATUS_LABELS[r.label]}</span></td></tr>`;
+                  return `<tr><td style="border:1px solid var(--line);padding:8px;">8.${idx + 1}</td><td style="border:1px solid var(--line);padding:8px;">${esc(c.f || 'Fornecedor')}</td><td style="border:1px solid var(--line);padding:8px;">${STATUS_LABELS[r.label]}</td></tr>`;
                 }).join('')}
               </tbody>
             </table>
@@ -342,13 +342,13 @@
 
           <div class="card">
             <table style="width:100%;border-collapse:collapse;">
-              <thead><tr><th style="border:1px solid var(--line);padding:8px;text-align:left;">Controles internos</th><th style="border:1px solid var(--line);padding:8px;text-align:left;">Qtd</th><th style="border:1px solid var(--line);padding:8px;text-align:left;">Pontos</th></tr></thead>
+              <thead><tr><th style="border:1px solid var(--line);padding:8px;text-align:left;">Controles internos</th><th style="border:1px solid var(--line);padding:8px;text-align:left;">Qtd</th></tr></thead>
               <tbody>
-                <tr><td style="border:1px solid var(--line);padding:8px;">Implementados (IM)</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.I}</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.I}</td></tr>
-                <tr><td style="border:1px solid var(--line);padding:8px;">OM</td><td style="border:1px solid var(--line);padding:8px;">0</td><td style="border:1px solid var(--line);padding:8px;">0</td></tr>
-                <tr><td style="border:1px solid var(--line);padding:8px;">N/A</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.A}</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.A}</td></tr>
-                <tr><td style="border:1px solid var(--line);padding:8px;">Parcialmente implementados (PI)</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.P}</td><td style="border:1px solid var(--line);padding:8px;">${(summary.counts.P * 0.65).toFixed(2)}</td></tr>
-                <tr><td style="border:1px solid var(--line);padding:8px;">Não implementados (NI)</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.N}</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.N}</td></tr>
+                <tr><td style="border:1px solid var(--line);padding:8px;">Implementados (IM)</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.I}</td></tr>
+                <tr><td style="border:1px solid var(--line);padding:8px;">OM</td><td style="border:1px solid var(--line);padding:8px;">0</td></tr>
+                <tr><td style="border:1px solid var(--line);padding:8px;">N/A</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.A}</td></tr>
+                <tr><td style="border:1px solid var(--line);padding:8px;">Parcialmente implementados (PI)</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.P}</td></tr>
+                <tr><td style="border:1px solid var(--line);padding:8px;">Não implementados (NI)</td><td style="border:1px solid var(--line);padding:8px;">${summary.counts.N}</td></tr>
               </tbody>
             </table>
             <p style="color:var(--muted);margin-top:10px;">Cálculo: (${(summary.index / 100).toFixed(2)} × 100 = ${percent(summary.index / 100)})</p>
@@ -366,8 +366,8 @@
         const plan = state.plans[item[0]] || {};
         return `
           <div class="card" style="margin-bottom:12px;">
-            <div style="font-weight:700; margin-bottom:8px;">${n + 1}. ${esc(item[3])}</div>
-            <p><b>Recomendação da Auditoria Interna:</b> ${esc(item[4])}</p>
+            <div style="font-weight:700; margin-bottom:8px;">${n + 1}. ${esc(item[3] || '')}</div>
+            <p><b>Recomendação da Auditoria Interna:</b> ${esc(item[4] || '')}</p>
             <div class="meta">
               <div><label class="field">Setor</label><input type="text" data-plan="${item[0]}.s" value="${esc(plan.s || item[5] || '')}"></div>
               <div><label class="field">Prazo</label><input type="text" data-plan="${item[0]}.z" value="${esc(plan.z || '')}" placeholder="MM/AAAA"></div>
@@ -536,11 +536,13 @@
 
       if (action === 'export') {
         const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
+        a.href = url;
         a.download = 'auditoria-' + (state.report.ai || 'relatorio').replace(/\W+/g, '-') + '.json';
+        document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(a.href);
+        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
         return;
       }
 
@@ -590,13 +592,19 @@
       const target = event.target;
 
       if (target.dataset.action === 'import' && target.files && target.files[0]) {
+        const file = target.files[0];
+        if (file.size > 5_000_000) { toast('Arquivo muito grande (máx 5MB)'); return; }
         try {
-          const text = await target.files[0].text();
+          const text = await file.text();
           const parsed = JSON.parse(text);
+          const report = parsed.report || parsed.m || {};
+          const contracts = Array.isArray(parsed.contracts) && parsed.contracts.length ? parsed.contracts : (Array.isArray(parsed.c) ? parsed.c : []);
+          const plans = parsed.plans || parsed.p || {};
+
           state = {
-            report: { ...DEFAULT_STATE.report, ...(parsed.report || {}), secImgs: { ...DEFAULT_STATE.report.secImgs, ...((parsed.report && parsed.report.secImgs) || {}) } },
-            contracts: Array.isArray(parsed.contracts) && parsed.contracts.length ? parsed.contracts : [],
-            plans: parsed.plans || {}
+            report: { ...DEFAULT_STATE.report, ...report, secImgs: { ...DEFAULT_STATE.report.secImgs, ...((report && report.secImgs) || {}) } },
+            contracts: contracts.length ? contracts : DEFAULT_STATE.contracts,
+            plans
           };
           currentContract = 0;
           activeTab = 'chk';
@@ -662,10 +670,32 @@
         toast('Nenhum contrato para gerar o relatório');
         return;
       }
+
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit: 'pt', format: 'a4' });
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const leftMargin = 40;
+      const rightMargin = 40;
+      const bottomMargin = 40;
       let y = 50;
+
+      const ensurePageForHeight = (heightNeeded) => {
+        if (y + heightNeeded > pageHeight - bottomMargin) {
+          doc.addPage();
+          y = 50;
+        }
+      };
+
+      const drawTextBlock = (text, maxWidth = pageWidth - leftMargin - rightMargin, lineHeight = 12) => {
+        const lines = doc.splitTextToSize(String(text || ''), maxWidth);
+        const height = lines.length * lineHeight + 6;
+        ensurePageForHeight(height);
+        doc.text(lines, leftMargin, y);
+        y += height;
+      };
+
+      // Header
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
       doc.text('RELATÓRIO DE AUDITORIA INTERNA', pageWidth / 2, y, { align: 'center' });
@@ -674,28 +704,95 @@
       doc.text(state.report.ai || 'AI', pageWidth / 2, y, { align: 'center' });
       y += 18;
       doc.text(state.report.tema || 'MEDIÇÃO DE OBRA', pageWidth / 2, y, { align: 'center' });
-      y += 18;
+      y += 16;
       doc.text(state.report.obra || 'OBRA', pageWidth / 2, y, { align: 'center' });
-      y += 18;
+      y += 16;
       doc.text(state.report.mes || 'COMPETÊNCIA', pageWidth / 2, y, { align: 'center' });
-      doc.addPage();
-      y = 50;
+      y += 20;
+
+      // Summary table of contracts using autoTable when available
+      if (doc.autoTable) {
+        const head = [['#', 'Fornecedor', 'Contrato', 'Total (R$)', 'Medido (R$)', 'Status']];
+        const body = state.contracts.map((c, idx) => {
+          const r = statusForContract(c);
+          return [`8.${idx + 1}`, c.f || '', c.ct || '', money(c.t), money(c.v), STATUS_LABELS[r.label]];
+        });
+        doc.autoTable({ head, body, startY: y, margin: { left: leftMargin, right: rightMargin }, styles: { fontSize: 10 } });
+        y = (doc.autoTable && doc.autoTable.previous && doc.autoTable.previous.finalY) ? doc.autoTable.previous.finalY + 12 : y + 80;
+      } else {
+        drawTextBlock('Contratos:');
+        state.contracts.forEach((c, idx) => {
+          const r = statusForContract(c);
+          drawTextBlock(`8.${idx + 1} · ${c.f || ''} · ${c.ct || ''} · ${money(c.t)} · ${money(c.v)} · ${STATUS_LABELS[r.label]}`);
+        });
+      }
+
+      // Details per contract, including criteria, evidences, actions and images
       state.contracts.forEach((c, idx) => {
-        if (y > 700) { doc.addPage(); y = 50; }
+        ensurePageForHeight(30);
         const r = statusForContract(c);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.text(`8.${idx + 1} · ${c.f || 'Fornecedor'} · ${STATUS_LABELS[r.label]}`, 40, y);
+        doc.setFontSize(12);
+        doc.text(`8.${idx + 1} · ${c.f || 'Fornecedor'} · ${STATUS_LABELS[r.label]}`, leftMargin, y);
         y += 16;
+
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-        const texto = CR.map((item, i) => `${STATUS_LABELS[c.s[i] || 'A']} - ${item[1]}`).join(' | ');
-        const linhas = doc.splitTextToSize(texto, 500);
-        doc.text(linhas, 40, y);
-        y += linhas.length * 12 + 14;
+        drawTextBlock(`Valor medido: ${money(c.v)} | Total contrato: ${money(c.t)}`);
+
+        // Criteria lines (with evidence and action if present)
+        CR.forEach((item, i) => {
+          const evidence = (c.o || {})[item[0]] || '';
+          const action = (c.ac || {})[item[0]] || '';
+          const texto = `${STATUS_LABELS[c.s[i] || 'A']} - ${item[1]}${evidence ? ' | Evidência: ' + evidence : ''}${action ? ' | Ação: ' + action : ''}`;
+          drawTextBlock(texto, pageWidth - leftMargin - rightMargin, 12);
+        });
+
+        // Images (thumbnails)
+        if (Array.isArray(c.imgs) && c.imgs.length) {
+          const thumbW = 120;
+          const thumbH = 90;
+          let x = leftMargin;
+          let rowHeight = 0;
+          c.imgs.forEach(img => {
+            ensurePageForHeight(thumbH + 6);
+            try {
+              doc.addImage(img.data, 'JPEG', x, y, thumbW, thumbH);
+            } catch (e) {
+              // if image cannot be added, skip
+            }
+            x += thumbW + 8;
+            rowHeight = Math.max(rowHeight, thumbH);
+            if (x + thumbW > pageWidth - rightMargin) {
+              x = leftMargin;
+              y += rowHeight + 8;
+              rowHeight = 0;
+            }
+          });
+          y += rowHeight + 12;
+        }
+
+        // Recommendations for this contract
+        const recs = CR.filter((item, i) => ['P', 'N'].includes(c.s[i] || 'A')).map(r => r[4]).filter(Boolean);
+        if (recs.length) {
+          drawTextBlock('Recomendações: ' + recs.join(' | '), pageWidth - leftMargin - rightMargin, 12);
+        }
+
       });
-      doc.save('relatorio-auditoria.pdf');
-      toast('PDF gerado');
+
+      // Footer: quadro geral / seção de dados do relatório
+      drawTextBlock('Quadro geral:');
+      drawTextBlock(`Tema: ${state.report.tema || ''}`);
+      drawTextBlock(`Obra: ${state.report.obra || ''}`);
+      drawTextBlock(`Competência: ${state.report.mes || ''}`);
+
+      // Trigger download
+      try {
+        doc.save('relatorio-auditoria.pdf');
+        toast('PDF gerado');
+      } catch (e) {
+        toast('Erro ao gerar PDF');
+      }
     }
 
     function generateWord() {
@@ -708,14 +805,14 @@
         return;
       }
 
-      const { Document, Packer, Paragraph, TextRun, AlignmentType } = window.docx;
+      const { Document, Packer, Paragraph, TextRun, AlignmentType, Table, TableRow, TableCell } = window.docx;
       const children = [];
 
       const addParagraph = (text, opts = {}) => {
         children.push(new Paragraph({
           alignment: opts.align || AlignmentType.LEFT,
           spacing: { after: 160 },
-          children: [new TextRun({ text, font: 'Arial', size: opts.size || 24, bold: !!opts.bold, italics: !!opts.italic })]
+          children: [new TextRun({ text: String(text || ''), size: opts.size || 24, bold: !!opts.bold, italics: !!opts.italic })]
         }));
       };
 
@@ -725,14 +822,42 @@
       addParagraph(state.report.obra || 'OBRA', { align: AlignmentType.CENTER, size: 22 });
       addParagraph(state.report.mes || 'Setembro/2026', { align: AlignmentType.CENTER, size: 22 });
 
-      addParagraph('8. CONSTATAÇÕES IM / N/A / PI / NI', { align: AlignmentType.JUSTIFIED, size: 24, bold: true });
+      // Contracts table
+      const tableRows = [];
+      tableRows.push(new TableRow({ children: [
+        new TableCell({ children: [new Paragraph('Item')] }),
+        new TableCell({ children: [new Paragraph('Fornecedor')] }),
+        new TableCell({ children: [new Paragraph('Contrato')] }),
+        new TableCell({ children: [new Paragraph('Total (R$)')] }),
+        new TableCell({ children: [new Paragraph('Medido (R$)')] }),
+        new TableCell({ children: [new Paragraph('Status')] })
+      ] }));
 
       state.contracts.forEach((c, idx) => {
         const r = statusForContract(c);
-        addParagraph(`8.${idx + 1} · ${c.f || 'Fornecedor'} · ${STATUS_LABELS[r.label]}`, { align: AlignmentType.JUSTIFIED, size: 22, bold: true });
-        addParagraph(`Valor medido: ${money(c.v)} | Total: ${money(c.t)}`, { align: AlignmentType.JUSTIFIED, size: 20 });
+        tableRows.push(new TableRow({ children: [
+          new TableCell({ children: [new Paragraph(`8.${idx + 1}`)] }),
+          new TableCell({ children: [new Paragraph(c.f || '')] }),
+          new TableCell({ children: [new Paragraph(c.ct || '')] }),
+          new TableCell({ children: [new Paragraph(money(c.t))] }),
+          new TableCell({ children: [new Paragraph(money(c.v))] }),
+          new TableCell({ children: [new Paragraph(STATUS_LABELS[r.label])] })
+        ] }));
+      });
+
+      const table = new Table({ rows: tableRows });
+      children.push(table);
+
+      // Add details per contract (criteria, evidences, actions)
+      state.contracts.forEach((c, idx) => {
+        const r = statusForContract(c);
+        children.push(new Paragraph({ children: [new TextRun({ text: `8.${idx + 1} · ${c.f || 'Fornecedor'} · ${STATUS_LABELS[r.label]}`, bold: true })] }));
+        children.push(new Paragraph({ children: [new TextRun({ text: `Valor medido: ${money(c.v)} | Total: ${money(c.t)}` })] }));
         CR.forEach((item, i) => {
-          addParagraph(`${STATUS_LABELS[c.s[i] || 'A']} - ${item[1]}`, { align: AlignmentType.JUSTIFIED, size: 20 });
+          const evidence = (c.o || {})[item[0]] || '';
+          const action = (c.ac || {})[item[0]] || '';
+          const line = `${STATUS_LABELS[c.s[i] || 'A']} - ${item[1]}${evidence ? ' | Evidência: ' + evidence : ''}${action ? ' | Ação: ' + action : ''}`;
+          children.push(new Paragraph({ children: [new TextRun({ text: line })] }));
         });
       });
 
@@ -741,7 +866,7 @@
           properties: {
             page: {
               margin: { top: 720, right: 720, bottom: 720, left: 720, header: 360, footer: 360 },
-              size: { width: 12240, height: 15840 }
+              size: { width: 11906, height: 16838 } // A4 in twips
             }
           },
           children
@@ -749,11 +874,13 @@
       });
 
       Packer.toBlob(doc).then(blob => {
+        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
+        a.href = url;
         a.download = 'relatorio-auditoria.docx';
+        document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(a.href);
+        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
         toast('Word gerado');
       }).catch(() => toast('Erro ao gerar Word'));
     }
