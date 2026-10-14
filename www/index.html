@@ -168,9 +168,34 @@
       return JSON.parse(JSON.stringify(DEFAULT_STATE));
     }
 
-    function saveState() { localStorage.setItem('aud1', JSON.stringify(state)); }
+    // Save state with size guard: don't store very large payloads (images can explode localStorage)
+    function saveState() {
+      try {
+        const asString = JSON.stringify(state);
+        const max = 1_200_000; // ~1.2MB rough limit
+        if (asString.length > max) {
+          // try to reduce size by removing images
+          const cloned = JSON.parse(JSON.stringify(state));
+          cloned.contracts = cloned.contracts.map(c => ({ ...c, imgs: [] }));
+          if (cloned.report && cloned.report.secImgs) {
+            Object.keys(cloned.report.secImgs).forEach(k => { cloned.report.secImgs[k] = []; });
+          }
+          const reduced = JSON.stringify(cloned);
+          if (reduced.length <= max) {
+            localStorage.setItem('aud1', reduced);
+            toast('Estado salvo (imagens removidas para reduzir tamanho)');
+            return;
+          }
+          toast('Dados muito grandes para salvar no navegador. Remova imagens ou exporte o relatório.');
+          return;
+        }
+        localStorage.setItem('aud1', asString);
+      } catch (e) {
+        console.error('saveState error', e);
+      }
+    }
 
-    const esc = (v) => String(v ?? '').replace(/[&<>"]|'/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+    const esc = (v) => String(v ?? '').replace(/[&<>\"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[ch]));
     const money = (n) => 'R$ ' + Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const percent = (n) => (Number(n || 0) * 100).toFixed(2).replace('.', ',') + '%';
 
@@ -213,9 +238,23 @@
       return { items, counts, total, index };
     }
 
+    // Basic sanitizer to remove <script> blocks and inline event handlers and javascript: URIs.
+    // This is not a full DOMPurify replacement but reduces attack surface for templates built with innerHTML.
+    function sanitizeHTML(input) {
+      let out = String(input || '');
+      // remove script blocks
+      out = out.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
+      // remove on*="..." and on*='...'
+      out = out.replace(/on[a-z]+\s*=\s*"[^"]*"/gi, '');
+      out = out.replace(/on[a-z]+\s*=\s*'[^']*'/gi, '');
+      // remove javascript: pseudo-protocol
+      out = out.replace(/javascript:\s*/gi, '');
+      return out;
+    }
+
     function render() {
       const summary = calcSummary();
-      document.getElementById('app').innerHTML = `
+      const template = `
         <header>
           <div class="title-wrap">
             <h1>Auditoria Interna · Checklist de Medição</h1>
@@ -229,12 +268,15 @@
           </div>
         </header>
         <nav>
-          ${['chk','qg','pl','cf'].map(tab => `<button class="tab ${activeTab === tab ? 'active' : ''}" data-action="tab" data-value="${tab}">${tab === 'chk' ? 'Checklist por contrato' : tab === 'qg' ? 'Quadro geral' : tab === 'pl' ? 'Planos de ação' : 'Relatório'}</button>`).join('')}
+          ${['chk','qg','pl','cf'].map(tab => `<button class="tab ${activeTab === tab ? 'active' : ''}" data-action="tab" data-value="${tab}">${tab === 'chk' ? 'Checklist por contrato' : tab === 'qg' ? 'Quadro geral' : tab === 'pl' ? 'Planos de ação' : 'Dados do relatório'}</button>`).join('')}
         </nav>
         <main>
           ${activeTab === 'chk' ? renderChecklist(summary) : activeTab === 'qg' ? renderQuadro(summary) : activeTab === 'pl' ? renderPlanos() : renderReport()}
         </main>
       `;
+      const container = document.getElementById('app');
+      // sanitize generated template before inserting into DOM
+      container.innerHTML = sanitizeHTML(template);
     }
 
     function renderChecklist(summary) {
@@ -278,12 +320,10 @@
               <div class="criterion-header"><strong>Imagens / evidências fotográficas</strong></div>
               <input type="file" accept="image/*" multiple data-upload="contract" data-index="${currentContract}">
               <div class="gallery">
-                ${(contract.imgs || []).map((img, idx) => `
-                  <div class="photo">
-                    <img src="${img.data}" alt="Evidência">
-                    <button type="button" data-remove-image="contract:${currentContract}:${idx}">×</button>
-                  </div>
-                `).join('') || '<div style="color:var(--muted)">Nenhuma imagem adicionada.</div>'}
+                ${(contract.imgs || []).map((img, idx) => {
+                  const safeSrc = (typeof img.data === 'string' && img.data.startsWith('data:image/')) ? img.data : '';
+                  return `\n                  <div class="photo">\n                    <img src="${safeSrc}" alt="Evidência">\n                    <button type="button" data-remove-image="contract:${currentContract}:${idx}">×</button>\n                  </div>\n                `;
+                }).join('') || '<div style="color:var(--muted)">Nenhuma imagem adicionada.</div>'}
               </div>
             </div>
 
@@ -407,12 +447,10 @@
               <textarea rows="6" data-report="${section.key}" placeholder="Descreva o conteúdo do item...">${esc(report[section.key])}</textarea>
               <input type="file" accept="image/*" multiple data-upload-section="${section.key}" style="margin-top:8px;">
               <div class="gallery">
-                ${(report.secImgs?.[section.key] || []).map((img, idx) => `
-                  <div class="photo">
-                    <img src="${img.data}" alt="${section.label}">
-                    <button type="button" data-remove-section-image="${section.key}:${idx}">×</button>
-                  </div>
-                `).join('') || '<div style="color:var(--muted)">Nenhuma imagem nesta seção.</div>'}
+                ${(report.secImgs?.[section.key] || []).map((img, idx) => {
+                  const safeSrc = (typeof img.data === 'string' && img.data.startsWith('data:image/')) ? img.data : '';
+                  return `\n                  <div class="photo">\n                    <img src="${safeSrc}" alt="${esc(section.label)}">\n                    <button type="button" data-remove-section-image="${section.key}:${idx}">×</button>\n                  </div>\n                `;
+                }).join('') || '<div style="color:var(--muted)">Nenhuma imagem nesta seção.</div>'}
               </div>
             </div>
           `).join('')}
@@ -450,6 +488,8 @@
 
     function normalizeImageFile(file) {
       return new Promise((resolve, reject) => {
+        // Limit individual image upload size
+        if (file.size > 3_500_000) return reject(new Error('Arquivo muito grande'));
         const reader = new FileReader();
         reader.onload = () => {
           const img = new Image();
@@ -470,6 +510,10 @@
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
+    }
+
+    function isValidImageData(obj) {
+      return obj && typeof obj.data === 'string' && /^data:image\/(jpeg|png|webp|gif);base64,/.test(obj.data) && (obj.data.length < 3_500_000);
     }
 
     document.addEventListener('click', async (event) => {
@@ -601,9 +645,19 @@
           const contracts = Array.isArray(parsed.contracts) && parsed.contracts.length ? parsed.contracts : (Array.isArray(parsed.c) ? parsed.c : []);
           const plans = parsed.plans || parsed.p || {};
 
+          // Validate images inside imported data
+          const safeContracts = (contracts || []).map(c => ({
+            ...c,
+            imgs: Array.isArray(c.imgs) ? c.imgs.filter(isValidImageData).slice(0, 6) : []
+          }));
+          const safeReport = { ...report, secImgs: {} };
+          Object.keys(DEFAULT_STATE.report.secImgs).forEach(k => {
+            safeReport.secImgs[k] = Array.isArray((report && report.secImgs && report.secImgs[k])) ? (report.secImgs[k] || []).filter(isValidImageData).slice(0, 6) : [];
+          });
+
           state = {
-            report: { ...DEFAULT_STATE.report, ...report, secImgs: { ...DEFAULT_STATE.report.secImgs, ...((report && report.secImgs) || {}) } },
-            contracts: contracts.length ? contracts : DEFAULT_STATE.contracts,
+            report: { ...DEFAULT_STATE.report, ...safeReport, secImgs: { ...DEFAULT_STATE.report.secImgs, ...((safeReport && safeReport.secImgs) || {}) } },
+            contracts: safeContracts.length ? safeContracts : DEFAULT_STATE.contracts,
             plans
           };
           currentContract = 0;
@@ -612,6 +666,7 @@
           render();
           toast('Dados importados');
         } catch (e) {
+          console.error(e);
           toast('Arquivo inválido');
         }
         return;
@@ -620,8 +675,12 @@
       if (target.dataset.upload === 'contract') {
         const contract = state.contracts[Number(target.dataset.index)];
         if (!contract) return;
-        const images = await Promise.all(Array.from(target.files || []).map(normalizeImageFile));
-        contract.imgs = [...(contract.imgs || []), ...images];
+        const files = Array.from(target.files || []);
+        const images = await Promise.all(files.map(f => normalizeImageFile(f).catch(() => null)));
+        const valid = images.filter(Boolean).slice(0, 6);
+        contract.imgs = [...(contract.imgs || []), ...valid];
+        // enforce per-contract image limit
+        if (contract.imgs.length > 6) contract.imgs = contract.imgs.slice(0, 6);
         saveState();
         render();
         return;
@@ -630,8 +689,10 @@
       if (target.dataset.uploadSection) {
         const key = target.dataset.uploadSection;
         state.report.secImgs = state.report.secImgs || {};
-        const images = await Promise.all(Array.from(target.files || []).map(normalizeImageFile));
-        state.report.secImgs[key] = [...(state.report.secImgs[key] || []), ...images];
+        const files = Array.from(target.files || []);
+        const images = await Promise.all(files.map(f => normalizeImageFile(f).catch(() => null)));
+        const valid = images.filter(Boolean).slice(0, 6);
+        state.report.secImgs[key] = [...(state.report.secImgs[key] || []), ...valid].slice(0, 6);
         saveState();
         render();
       }
@@ -757,7 +818,7 @@
           c.imgs.forEach(img => {
             ensurePageForHeight(thumbH + 6);
             try {
-              doc.addImage(img.data, 'JPEG', x, y, thumbW, thumbH);
+              if (isValidImageData(img)) doc.addImage(img.data, 'JPEG', x, y, thumbW, thumbH);
             } catch (e) {
               // if image cannot be added, skip
             }
