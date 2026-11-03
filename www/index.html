@@ -124,16 +124,16 @@
       ['bol','Boletim sem divergência monetária ao contrato',1,'Boletim em divergência monetária ao contrato.','Possuir sempre o adendo com a atualização dos valores a pagar.','SUP'],
       ['qdc','Quadro de Concorrência (3 empresas e justificativas)',1,'Quadro de concorrência ausente ou incompleto.','Emitir justificativa de exceção aprovada.','SUP'],
       ['fis','Análise fiscal (saúde financeira)',0,'Análise fiscal ausente ou desatualizada.','Disponibilizar e manter atualizada a análise fiscal do fornecedor no Mega.','SUP'],
-      ['trb','Documentação trabalhista (SSELCOM)',0,'Documentação trabalhista incompleta ou vencida.','Bloquear a liberação da empresa enquanto houver pendência documental.','SUP']
+      ['trb','Documentação trabalhista obrigatória',0,'Documentação trabalhista incompleta ou vencida.','Bloquear a liberação da empresa enquanto houver pendência documental.','SUP']
     ];
 
     const STATUS_LABELS = { I: 'IM', O: 'OM', A: 'N/A', P: 'PI', N: 'NI' };
     const STATUS_ORDER = ['I', 'O', 'A', 'P', 'N'];
     const DEFAULT_STATE = {
       report: {
-        ai: 'AI-017/2026',
+        ai: 'AI-DEMO-001',
         tema: 'MEDIÇÃO DE OBRA',
-        obra: 'OBRA 556 – NORTH TOWER',
+        obra: 'OBRA DEMONSTRATIVA',
         mes: 'Setembro/2026',
         sec4: '',
         sec5: '',
@@ -142,8 +142,8 @@
         secImgs: { sec4: [], sec5: [], sec6: [], lim: [] }
       },
       contracts: [
-        { f: 'C.L.R. ENTULHOS LTDA', ct: '666', t: 58515, v: 500, s: ['I','O','A','N','I','I','I','A','A'], o: {}, ac: {}, imgs: [] },
-        { f: 'DAHER ENG. CONSULTIVA E TEC. LTDA', ct: '722', t: 36734.5, v: 803, s: ['I','A','N','N','I','N','I','I','N'], o: {}, ac: {}, imgs: [] }
+        { f: 'FORNECEDOR DEMONSTRATIVO A LTDA', ct: 'DEMO-001', t: 50000, v: 12500, s: ['I','O','A','N','I','I','I','A','A'], o: {}, ac: {}, imgs: [] },
+        { f: 'FORNECEDOR DEMONSTRATIVO B LTDA', ct: 'DEMO-002', t: 35000, v: 8750, s: ['I','A','N','N','I','N','I','I','N'], o: {}, ac: {}, imgs: [] }
       ],
       plans: {}
     };
